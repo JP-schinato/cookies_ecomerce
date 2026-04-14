@@ -685,15 +685,25 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
      - O Apps Script lê e.postData.contents e faz JSON.parse().
      - Retornar Promise para o submit poder usar await corretamente.
 ═══════════════════════════════════════════════════ */
-function sendToSheets(data) {
-  return fetch(APPS_SCRIPT_URL, {
-    method:  "POST",
-    mode:    "no-cors",                  // evita bloqueio por CORS
-    headers: { "Content-Type": "text/plain" },  // ← header simples, sem preflight
-    body:    JSON.stringify(data)        // Apps Script lê com e.postData.contents
-  });
-  // Com mode:"no-cors" a resposta é opaca (não lemos o body),
-  // mas o dado chega normalmente na planilha.
+async function sendToSheets(data) {
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"   // ← Isso evita o preflight CORS
+      },
+      body: JSON.stringify(data)
+    });
+
+    const text = await response.text();
+    console.log("✅ Resposta do Apps Script:", text);
+
+    return text;
+
+  } catch (err) {
+    console.error("❌ Erro ao enviar pedido:", err);
+    throw err;   // para cair no catch do formulário
+  }
 }
 
 /* ═══════════════════════════════════════════════════
