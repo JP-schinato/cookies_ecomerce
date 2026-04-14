@@ -686,12 +686,14 @@ async function sendToSheets(data) {
   try {
     await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      mode: "no-cors", // 🔥 ESSENCIAL
+      mode: "no-cors", // 🔥 ESSENCIAL PRO GITHUB PAGES
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
     });
+
+    console.log("Pedido enviado (modo silencioso)");
 
   } catch (error) {
     console.error("Erro ao enviar:", error);
