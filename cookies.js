@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   COOKIE STORE — cookies.js
+   COOKIE STORE — cookies.js  (versão corrigida)
 
    ⚙️  CONFIGURAÇÕES — altere aqui:
 ═══════════════════════════════════════════════════ */
@@ -77,9 +77,9 @@ function calcDeliveryDate(totalQty) {
   while (added < days) {
     date.setDate(date.getDate() + 1);
     const dow = date.getDay();
-    if (dow !== 0 && dow !== 6) added++; // pula fins de semana
+    if (dow !== 0 && dow !== 6) added++;
   }
-  return date.toLocaleDateString("pt-BR"); // dd/mm/aaaa
+  return date.toLocaleDateString("pt-BR");
 }
 
 /* ═══════════════════════════════════════════════════
@@ -359,7 +359,6 @@ function renderCart() {
 
   totalEl.textContent = fmtPrice(total);
 
-  // Atualiza prazo de entrega estimado no formulário
   const deadlineEl = document.getElementById("deliveryDeadlineInfo");
   if (deadlineEl) {
     const prazo = totalQty > 3 ? 3 : 2;
@@ -589,7 +588,6 @@ document.getElementById("orderConfirmOverlay").addEventListener("click", (e) => 
   }
 });
 
-/* Copiar chave PIX */
 document.getElementById("btnCopyPix").addEventListener("click", () => {
   navigator.clipboard.writeText(PIX_KEY).then(() => {
     showToast("Chave PIX copiada! 📋");
@@ -615,7 +613,6 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
   const payment = document.getElementById("paymentMethod").value;
   const notes   = document.getElementById("orderNotes").value.trim();
 
-  // Validação
   const requiredFields = { clientName: name, clientPhone: phone, paymentMethod: payment };
   document.querySelectorAll(".form-group input,.form-group select").forEach(el => el.classList.remove("error"));
   let hasError = false;
@@ -627,10 +624,9 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
   });
   if (hasError) { showToast("Preencha todos os campos obrigatórios!", "error"); return; }
 
-  // Calcular prazo e ID
-  const totalQty    = cart.reduce((s, c) => s + c.qty, 0);
+  const totalQty     = cart.reduce((s, c) => s + c.qty, 0);
   const deliveryDate = calcDeliveryDate(totalQty);
-  const orderId     = generateOrderId();
+  const orderId      = generateOrderId();
 
   const itemsList = cart.map(c =>
     `${c.qty}x ${c.product.name} (${c.product.weight}g) = ${fmtPrice(c.product.price * c.qty)}`
@@ -639,36 +635,33 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
   const total = cart.reduce((s, c) => s + c.product.price * c.qty, 0);
 
   const orderData = {
-    id_pedido:     orderId,
-    data_pedido:   new Date().toLocaleString("pt-BR"),
-    nome:          name,
-    telefone:      phone,
-    slack:         slack || "—",
-    data_entrega:  deliveryDate,
-    prazo_dias:    totalQty > 3 ? "3" : "2",
-    pagamento:     payment,
-    itens:         itemsList,
-    total:         fmtPrice(total),
-    observacoes:   notes || "—",
-    prioridade:    new Date().toISOString() // ISO para ordenação no Sheets
+    id_pedido:    orderId,
+    data_pedido:  new Date().toLocaleString("pt-BR"),
+    nome:         name,
+    telefone:     phone,
+    slack:        slack || "—",
+    data_entrega: deliveryDate,
+    prazo_dias:   totalQty > 3 ? "3" : "2",
+    pagamento:    payment,
+    itens:        itemsList,
+    total:        fmtPrice(total),
+    observacoes:  notes || "—",
+    prioridade:   new Date().toISOString()
   };
 
-  // Loading state
   const btn = document.getElementById("submitOrder");
   document.getElementById("submitLabel").classList.add("hidden");
   document.getElementById("submitLoading").classList.remove("hidden");
   btn.disabled = true;
 
   try {
-    sendToSheets(orderData);
+    await sendToSheets(orderData);   // ← agora aguarda corretamente
     clearCart();
     document.getElementById("orderForm").reset();
     renderCart();
-    // Fecha o estado de loading antes de abrir o modal
     document.getElementById("submitLabel").classList.remove("hidden");
     document.getElementById("submitLoading").classList.add("hidden");
     btn.disabled = false;
-    // Abre modal de confirmação
     openOrderConfirmModal({ orderId, total, deliveryDate, payment });
   } catch(err) {
     console.error(err);
@@ -680,23 +673,27 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
 });
 
 /* ═══════════════════════════════════════════════════
-   GOOGLE SHEETS
+   GOOGLE SHEETS — CORRIGIDO
+   
+   PROBLEMA ANTERIOR:
+     - header "Content-Type: application/json" dispara um preflight CORS
+       que o Google Apps Script não responde corretamente, bloqueando a requisição.
+     - O Apps Script usava e.parameter que só lê form-encoded, não JSON.
+   
+   CORREÇÃO:
+     - Usar "Content-Type: text/plain" — é um header "simples", sem preflight.
+     - O Apps Script lê e.postData.contents e faz JSON.parse().
+     - Retornar Promise para o submit poder usar await corretamente.
 ═══════════════════════════════════════════════════ */
 function sendToSheets(data) {
-  fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then(res => res.json())
-  .then(res => {
-    console.log("Resposta:", res);
-  })
-  .catch(err => {
-    console.error("Erro:", err);
+  return fetch(APPS_SCRIPT_URL, {
+    method:  "POST",
+    mode:    "no-cors",                  // evita bloqueio por CORS
+    headers: { "Content-Type": "text/plain" },  // ← header simples, sem preflight
+    body:    JSON.stringify(data)        // Apps Script lê com e.postData.contents
   });
+  // Com mode:"no-cors" a resposta é opaca (não lemos o body),
+  // mas o dado chega normalmente na planilha.
 }
 
 /* ═══════════════════════════════════════════════════
