@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍪 Cookie Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cookies.css">
+
+  <!-- Estilos extra para as novas funcionalidades -->
+  <style>
+    /* ── Prazo de entrega ── */
+    .delivery-deadline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--orange-pale);
+      border: 1.5px solid var(--orange-light);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: .88rem;
+      color: var(--brown-mid);
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .delivery-deadline strong { color: var(--brown); }
+    .deadline-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .deadline-note {
+      display: block;
+      font-size: .78rem;
+      color: var(--text-light);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    /* ── Modal de confirmação de pedido ── */
+    .confirm-modal {
+      max-width: 440px;
+    }
+    .confirm-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .confirm-icon {
+      font-size: 3.5rem;
+      display: block;
+      margin-bottom: 10px;
+      animation: bounceIn .4s cubic-bezier(.36,1.56,.64,1);
+    }
+    @keyframes bounceIn {
+      from { transform: scale(.4); opacity: 0; }
+      to   { transform: scale(1);  opacity: 1; }
+    }
+    .confirm-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      color: var(--brown);
+      margin-bottom: 4px;
+    }
+    .confirm-header p {
+      color: var(--text-light);
+      font-size: .9rem;
+      font-style: italic;
+    }
+    .confirm-details {
+      background: var(--cream);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .confirm-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .confirm-row .label {
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+    .confirm-row .value {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--brown);
+      font-size: .95rem;
+      text-align: right;
+    }
+    .confirm-row .value.order-id {
+      font-family: 'Courier New', monospace;
+      font-size: .9rem;
+      background: var(--cream-dark);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      letter-spacing: .04em;
+    }
+    .confirm-row .value.total-value {
+      font-size: 1.2rem;
+      color: var(--orange);
+    }
+
+    /* ── Seção PIX ── */
+    .pix-section {
+      background: #f0faf3;
+      border: 1.5px solid #7bc89a;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+    .pix-title {
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 700;
+      color: #2d7a4f;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pix-key-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pix-key-value {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a5c39;
+      background: #fff;
+      border: 1.5px solid #7bc89a;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      letter-spacing: .04em;
+    }
+    .btn--pix {
+      background: #2d7a4f;
+      color: #fff;
+      border-color: #2d7a4f;
+      padding: 10px 16px;
+      font-size: .82rem;
+    }
+    .btn--pix:hover {
+      background: #1a5c39;
+      border-color: #1a5c39;
+      transform: translateY(-1px);
+    }
+    .pix-note {
+      font-size: .78rem;
+      color: #3d7a4a;
+      margin-top: 10px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .confirm-cta {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🍪</span>
+        <div class="logo-text">
+          <span class="logo-main">Cookie<em>s</em></span>
+          <span class="logo-sub">artesanais</span>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button class="tab active" data-tab="loja">
+          <span class="tab-icon">🏪</span><span>Loja</span>
+        </button>
+        <button class="tab" data-tab="carrinho">
+          <span class="tab-icon">🛒</span><span>Carrinho</span>
+          <span class="cart-badge hidden" id="cartBadge">0</span>
+        </button>
+        <button class="tab tab--admin" data-tab="admin">
+          <span class="tab-icon">⚙️</span><span>Gerenciar</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- LOJA -->
+    <section class="tab-panel active" id="tab-loja">
+      <div class="section-header">
+        <div>
+          <h1>Nossos Cookies</h1>
+          <p class="section-sub">Feitos com amor, entregues fresquinhos 🤍</p>
+        </div>
+      </div>
+      <div class="products-grid" id="productsGrid"></div>
+      <div class="empty-state hidden" id="lojaEmpty">
+        <span>🍪</span>
+        <p>Nenhum cookie disponível ainda.</p>
+      </div>
+    </section>
+
+    <!-- CARRINHO -->
+    <section class="tab-panel" id="tab-carrinho">
+      <div class="section-header"><h1>Seu Carrinho</h1></div>
+      <div class="cart-empty hidden" id="cartEmpty">
+        <span>🛒</span>
+        <p>Seu carrinho está vazio.<br>Adicione cookies deliciosos na loja!</p>
+        <button class="btn btn--primary" onclick="goToTab('loja')">Ver Loja</button>
+      </div>
+      <div class="cart-layout" id="cartLayout">
+        <div class="cart-left">
+          <h2 class="cart-section-title">Itens do Pedido</h2>
+          <div class="cart-items" id="cartItems"></div>
+          <div class="cart-total-bar">
+            <span>Total</span>
+            <span id="cartTotalDisplay">R$ 0,00</span>
+          </div>
+          <!-- Prazo de entrega dinâmico -->
+          <div class="delivery-deadline" id="deliveryDeadlineInfo">
+            <span class="deadline-icon">📦</span>
+            Prazo estimado: <strong>2 dias úteis</strong>
+          </div>
+        </div>
+        <div class="cart-right">
+          <h2 class="cart-section-title">Dados para Entrega</h2>
+          <form class="order-form" id="orderForm" novalidate>
+            <div class="form-group">
+              <label for="clientName">Nome completo *</label>
+              <input type="text" id="clientName" placeholder="Seu nome">
+            </div>
+            <div class="form-group">
+              <label for="clientPhone">Telefone / WhatsApp *</label>
+              <input type="tel" id="clientPhone" placeholder="(11) 99999-9999">
+            </div>
+            <div class="form-group">
+              <label for="clientSlack">@ Slack</label>
+              <input type="text" id="clientSlack" placeholder="@seunome">
+            </div>
+            <div class="form-group">
+              <label for="paymentMethod">Forma de pagamento *</label>
+              <select id="paymentMethod">
+                <option value="">Selecione...</option>
+                <option value="PIX">PIX</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="orderNotes">Observações</label>
+              <textarea id="orderNotes" rows="3" placeholder="Alergias, preferências, embalagem especial..."></textarea>
+            </div>
+            <button type="submit" class="btn btn--primary btn--full btn--big" id="submitOrder">
+              <span id="submitLabel">Enviar Pedido 🍪</span>
+              <span id="submitLoading" class="hidden">Enviando...</span>
+            </button>
+            <p class="form-note">* Campos obrigatórios</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- GERENCIAMENTO -->
+    <section class="tab-panel" id="tab-admin">
+      <div id="adminContent" class="hidden">
+        <div class="section-header">
+          <div>
+            <h1>Gerenciamento</h1>
+            <p class="section-sub">Adicione, edite ou remova produtos</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn btn--ghost" id="btnLockAdmin">🔒 Sair</button>
+            <button class="btn btn--primary" id="btnNewProduct">+ Novo Cookie</button>
+          </div>
+        </div>
+        <div class="products-grid" id="adminGrid"></div>
+        <div class="empty-state hidden" id="adminEmpty">
+          <span>🍪</span>
+          <p>Nenhum produto cadastrado.<br>Clique em <strong>+ Novo Cookie</strong> para começar!</p>
+        </div>
+
+        <!-- Guia Sheets -->
+        <div class="sheets-guide">
+          <h2>📊 Como conectar ao Google Sheets</h2>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Crie a planilha</strong>
+                <p>Abra o <a href="https://sheets.google.com" target="_blank">Google Sheets</a>, crie uma planilha nova e renomeie a aba para <code>Pedidos</code>. Na linha 1, adicione estes cabeçalhos:</p>
+                <pre><code>A: ID Pedido
+B: Data do Pedido
+C: Nome
+D: Telefone
+E: Slack
+F: Data Entrega
+G: Prazo (dias)
+H: Pagamento
+I: Itens
+J: Total
+K: Observações
+L: Timestamp (para ordenação)</code></pre>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Abra o Apps Script</strong>
+                <p>Na planilha, clique em <strong>Extensões → Apps Script</strong>. Apague tudo e cole o código do arquivo <code>appscript.gs</code> fornecido. Salve com <strong>Ctrl+S</strong>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Implante como Web App</strong>
+                <p>Clique em <strong>Implantar → Nova implantação</strong>.<br>
+                Selecione tipo: <strong>App da Web</strong>.<br>
+                Configure:<br>
+                · <em>Executar como:</em> <strong>Eu mesmo</strong><br>
+                · <em>Quem pode acessar:</em> <strong>Qualquer pessoa</strong><br>
+                Clique em <strong>Implantar</strong>, autorize e <strong>copie a URL</strong>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="step-num">4</span>
+              <div>
+                <strong>Cole a URL no cookies.js</strong>
+                <p>Abra o arquivo <code>cookies.js</code> e substitua o valor de <code>APPS_SCRIPT_URL</code> pela URL copiada:</p>
+                <pre><code>const APPS_SCRIPT_URL = "https://script.google.com/macros/s/SUA_URL/exec";</code></pre>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="step-num">5</span>
+              <div>
+                <strong>Configure a ordenação automática no Sheets</strong>
+                <p>Na planilha, selecione todas as colunas → <strong>Dados → Criar um filtro</strong>. Clique no filtro da coluna <strong>B (Data do Pedido)</strong> → Ordenar A→Z. Assim os pedidos mais antigos (mais prioritários) aparecem primeiro!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: PRODUTO -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <h2 class="modal-title" id="modalTitle">Novo Cookie</h2>
+      <form id="productForm" novalidate>
+        <input type="hidden" id="pId">
+
+        <div class="form-group">
+          <label>Foto do Cookie *</label>
+          <div class="img-upload-wrap" id="imgUploadWrap">
+            <img class="img-preview hidden" id="imgPreview" src="" alt="Preview">
+            <div class="img-placeholder" id="imgPlaceholder">
+              <span>📷</span>
+              <p>Clique para adicionar foto</p>
+              <small>JPG, PNG ou WEBP · máx 2MB</small>
+            </div>
+            <input type="file" id="pImage" accept="image/jpeg,image/png,image/webp" class="img-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pName">Nome do Cookie *</label>
+          <input type="text" id="pName" placeholder="ex: Cookie de Chocolate Belga">
+        </div>
+        <div class="form-group">
+          <label for="pDesc">Descrição</label>
+          <textarea id="pDesc" rows="3" placeholder="Ingredientes, sabor, diferenciais..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pPrice">Preço (R$) *</label>
+            <input type="number" id="pPrice" placeholder="12.00" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label for="pWeight">Peso (g) *</label>
+            <input type="number" id="pWeight" placeholder="80" min="1">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn--ghost" id="btnCancelModal">Cancelar</button>
+          <button type="submit" class="btn btn--primary">Salvar Cookie</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAÇÃO DE PEDIDO -->
+  <div class="modal-overlay hidden" id="orderConfirmOverlay">
+    <div class="modal confirm-modal">
+      <div class="confirm-header">
+        <span class="confirm-icon">🎉</span>
+        <h2>Pedido Recebido!</h2>
+        <p>Seu pedido foi registrado com sucesso.</p>
+      </div>
+
+      <div class="confirm-details">
+        <div class="confirm-row">
+          <span class="label">Nº do Pedido</span>
+          <span class="value order-id" id="confirmOrderId">—</span>
+        </div>
+        <div class="confirm-row">
+          <span class="label">Entrega até</span>
+          <span class="value" id="confirmDelivery">—</span>
+        </div>
+        <div class="confirm-row">
+          <span class="label">Total</span>
+          <span class="value total-value" id="confirmTotal">—</span>
+        </div>
+        <div class="confirm-row">
+          <span class="label">Pagamento</span>
+          <span class="value" id="confirmPayment">—</span>
+        </div>
+      </div>
+
+      <!-- Seção PIX (só aparece se pagamento for PIX) -->
+      <div class="pix-section hidden" id="pixSection">
+        <div class="pix-title">
+          <span>💚</span> Pagar via PIX
+        </div>
+        <div class="pix-key-row">
+          <span class="pix-key-value" id="pixKeyDisplay">—</span>
+          <button class="btn btn--pix" id="btnCopyPix">📋 Copiar</button>
+        </div>
+        <p class="pix-note">Use o número acima como chave PIX. Após o pagamento, entraremos em contato para confirmar! 🍪</p>
+      </div>
+
+      <button class="btn btn--primary confirm-cta" id="btnCloseConfirm">
+        Continuar Comprando 🍪
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: SENHA -->
+  <div class="modal-overlay hidden" id="passwordModalOverlay">
+    <div class="modal modal--small">
+      <div class="lock-header">
+        <div class="lock-icon-big">🔒</div>
+        <h2 class="modal-title">Área Restrita</h2>
+        <p class="section-sub">Digite a senha para continuar</p>
+      </div>
+      <div class="form-group" style="margin-top:20px">
+        <input type="password" id="adminPassInput" placeholder="Senha" autocomplete="current-password">
+      </div>
+      <p class="lock-error hidden" id="passError">❌ Senha incorreta. Tente novamente.</p>
+      <div class="form-actions" style="margin-top:16px">
+        <button class="btn btn--ghost" id="btnCancelPass">Cancelar</button>
+        <button class="btn btn--primary" id="btnConfirmPass">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="cookies.js"></script>
+</body>
+</html>
