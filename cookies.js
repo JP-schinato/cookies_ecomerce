@@ -660,7 +660,7 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
   btn.disabled = true;
 
   try {
-    await sendToSheets(orderData);
+    sendToSheets(orderData);
     clearCart();
     document.getElementById("orderForm").reset();
     renderCart();
@@ -682,23 +682,23 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
 /* ═══════════════════════════════════════════════════
    GOOGLE SHEETS
 ═══════════════════════════════════════════════════ */
-async function sendToSheets(data) {
-  try {
-    await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors", // 🔥 ESSENCIAL PRO GITHUB PAGES
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    });
+function sendToSheets(data) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = APPS_SCRIPT_URL;
+  form.target = "hidden_iframe";
 
-    console.log("Pedido enviado (modo silencioso)");
-
-  } catch (error) {
-    console.error("Erro ao enviar:", error);
-    throw error;
+  for (let key in data) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = data[key];
+    form.appendChild(input);
   }
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
 }
 
 /* ═══════════════════════════════════════════════════
