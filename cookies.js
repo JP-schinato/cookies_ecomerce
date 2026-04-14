@@ -683,22 +683,20 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
    GOOGLE SHEETS
 ═══════════════════════════════════════════════════ */
 function sendToSheets(data) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = APPS_SCRIPT_URL;
-  form.target = "hidden_iframe";
-
-  for (let key in data) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = data[key];
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => res.json())
+  .then(res => {
+    console.log("Resposta:", res);
+  })
+  .catch(err => {
+    console.error("Erro:", err);
+  });
 }
 
 /* ═══════════════════════════════════════════════════
