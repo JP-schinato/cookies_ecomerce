@@ -5,7 +5,7 @@
 ═══════════════════════════════════════════════════ */
 
 // URL do Google Apps Script (veja o guia na aba Gerenciar)
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJvrJfETE3yeNFIqfIlql9joglf98sk5DZJ2LsqNrcFiXl5RRLsNCpFPI0tXY0HAax/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPRV7lC0yVbzTqwLl7FTbi8KseWl-z4enJOylhRgIZykU6pcP2nHa-SIdC_y47FEk/exec";
 
 // Senha da aba de gerenciamento (troque para a sua!)
 const ADMIN_PASSWORD = "cookies123";
